@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SafeRoute Admin Dashboard</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    
+    <style>
+        body { margin: 0; padding: 0; font-family: sans-serif; }
+        #map { height: 100vh; width: 100%; }
+        #status {
+            position: absolute; top: 20px; right: 20px; z-index: 1000;
+            background: white; padding: 15px; border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        .driver-icon {
+            font-size: 20px; background: white; border-radius: 50%; 
+            padding: 5px; box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="status">
+        <h3>🚔 Fleet Status</h3>
+        <p>Driver ID: <span id="driver_id">Waiting...</span></p>
+        <p>Speed: <span style="color:green">Live</span></p>
+    </div>
+
+    <div id="map"></div>
+
+    <script>
+        // 1. Initialize Map with the SAME "Voyager" style as your App
+        var map = L.map('map').setView([22.7292, 88.4878], 15);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap, © CartoDB',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
+
+        // 2. Create a Marker for the driver
+        var driverMarker = L.marker([22.7292, 88.4878]).addTo(map);
+
+        // 3. Connect to WebSocket (Same Python Server)
+        // If testing on same PC, localhost is fine.
+        var ws = new WebSocket("ws://localhost:8000/ws");
+
+        ws.onopen = function() {
+            console.log("Connected to SafeRoute Server");
+        };
+
+        ws.onmessage = function(event) {
+            var data = JSON.parse(event.data);
+            
+            // Update Text
+            document.getElementById('driver_id').innerText = data.id || "Unknown";
+            
+            // Update Marker Position
+            var newLatLng = [data.lat, data.lng];
+            driverMarker.setLatLng(newLatLng);
+            
+            // Pan map to follow driver
+            map.panTo(newLatLng);
+        };
+    </script>
+</body>
+</html>
