@@ -31,3 +31,11 @@
 
 # 6. Linux/Mac scripts should always use Linux endings (LF)
 *.sh text eol=lf
+
+# Ignore Flutter platform code from language stats
+**/android/** linguist-vendored
+**/ios/** linguist-vendored
+**/windows/** linguist-vendored
+**/linux/** linguist-vendored
+**/macos/** linguist-vendored
+**/web/** linguist-vendored
